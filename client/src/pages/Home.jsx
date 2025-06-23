@@ -1,84 +1,107 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { Card, Button } from "react-bootstrap";
 
 function Home() {
   const [data, setData] = useState([]);
   const [deleted, setDeleted] = useState(true);
+
+  const role = localStorage.getItem("role");
+  const userId = parseInt(localStorage.getItem("user_id"));
+
   useEffect(() => {
     if (deleted) {
       setDeleted(false);
       axios
         .get("/events")
         .then((res) => {
-          console.log("Backend response:", res.data); // Debug here
-          setData(res.data);
+          const result = Array.isArray(res.data) ? res.data : [res.data];
+          setData(result);
         })
-        .catch((err) => console.log("Axios Error:", err));
+        .catch((err) => console.log(err));
     }
   }, [deleted]);
 
   function handleDelete(id) {
     axios
-      .delete(`/delete/${id}`)
-      .then((res) => {
+      .delete(`/delete/${id}`, {
+        data: {
+          userId: localStorage.getItem("user_id"),
+          role: localStorage.getItem("role"),
+        },
+      })
+      .then(() => {
         setDeleted(true);
       })
       .catch((err) => console.log("Axios Error:", err));
   }
 
   return (
-    <div className="container-fluid bg-primary vh-100 vm-100">
-      <h3>Events</h3>
-      <div className="d-flex justify-content-end">
-        <Link className="btn btn-success" to="/create">
-          Add Events
-        </Link>
+    <div className="container mt-4">
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h3>Events</h3>
+
+        {/* Show Add Event button only if user or admin */}
+        {(role === "user" || role === "admin") && (
+          <Link className="btn btn-success" to="/create">
+            Add Event
+          </Link>
+        )}
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Event Name</th>
-            <th>Location</th>
-            <th>Max Count</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((event) => {
-            return (
-              <tr key={event.id}>
-                <td>{event.id}</td>
-                <td>{event.e_name}</td>
-                <td>{event.location}</td>
-                <td>{event.max_count}</td>
-                <td>
+      <div className="row">
+        {data.map((event) => (
+          <div className="col-md-4 mb-4" key={event.id}>
+            <Card>
+              <Card.Body>
+                <Card.Title>{event.e_name}</Card.Title>
+                <Card.Subtitle className="mb-2 text-muted">
+                  Location: {event.location}
+                </Card.Subtitle>
+                <Card.Text>Max Participants: {event.max_count}</Card.Text>
+
+                {/* ✅ Show only for Admins and user who create the event */}
+                {role === "admin" && (
+                  <Card.Text>
+                    <strong>Added By:</strong> {event.created_by}
+                  </Card.Text>
+                )}
+
+                <div className="d-flex justify-content-between">
                   <Link
-                    className="btn mx-2 btn-success"
                     to={`/read/${event.id}`}
-                   >
-                    Read
+                    className="btn btn-primary btn-sm"
+                  >
+                    View
                   </Link>
-                  <Link
-                    className="btn mx-2 btn-success"
-                    to={`/edit/${event.id}`}
-                   >
-                    Edit
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(event.id)}
-                    className="btn mx-2 btn-danger"
-                   >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+
+                  {(role === "admin" ||
+                    event.user_id ===
+                      parseInt(localStorage.getItem("user_id"))) && (
+                    <>
+                      <Link
+                        to={`/edit/${event.id}`}
+                        className="btn btn-warning btn-sm"
+                      >
+                        Edit
+                      </Link>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleDelete(event.id)}
+                      >
+                        Delete
+                      </Button>
+                      
+                    </>
+                  )}
+                </div>
+              </Card.Body>
+            </Card>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

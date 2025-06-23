@@ -1,65 +1,112 @@
-import React, {useState} from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { Form, Button, Container, Row, Col, Card } from "react-bootstrap";
 
 function Create() {
-
   const [values, setValues] = useState({
-        e_name: '',
-        location: '',
-        max_count: '',
-        // gender: '',
-  })
+    e_name: "",
+    location: "",
+    max_count: "",
+  });
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  function handleSubmit(e){
-    e.preventDefault()
-    console.log("Submitting:", values);
+  function handleSubmit(e) {
+    e.preventDefault();
 
-    axios.post('/add_event', values)
-    .then((res)=>{
-      navigate('/')
-      console.log(res)
+    const userId = localStorage.getItem("user_id");
+    if (!userId) {
+      alert("Please login again. User ID missing.");
+      return;
+    }
+
+    const payload = {
+      ...values,
+      user_id: userId,
+    };
+
+    console.log("Submitting:", payload);
+
+    axios
+      .post("/add_event", payload)
+      .then((res) => {
+        navigate("/");
       })
-    .catch((err)=>console.log("Axios Error:", err))
+      .catch((err) => {
+        console.error("Axios Error:", err);
+        alert("Something went wrong while adding the event.");
+      });
   }
 
   return (
-    <div className='container vh-100 vw-100 bg-primary'>
-      <div className='row'>
-        <h3>Add Event</h3>
-        <div className='d-fex justify-content-end'>
-            <Link to='/' class='btn btn-success'>Home</Link>
-        </div>
-        <form onSubmit={handleSubmit}>
-            <div className='form-group my-3'>
-                <label htmlFor='name'>Event Name: </label>
-                <input type='text' name='e_name' onChange={(e)=> setValues({...values, e_name: e.target.value})} />
-            </div>
+    <Container fluid className="vh-100 bg-primary text-white py-5">
+      <Row className="justify-content-center">
+        <Col md={6}>
+          <Card className="p-4">
+            <Card.Body>
+              <Card.Title className="mb-4 text-center">
+                Add New Event
+              </Card.Title>
 
-            <div className='form-group my-3'>
-                <label htmlFor='name'>Location: </label>
-                <input type='text' name='location' onChange={(e)=> setValues({...values, location: e.target.value})} />
-            </div>
+              <div className="d-flex justify-content-end mb-3">
+                <Link to="/" className="btn btn-success">
+                  Back to Home
+                </Link>
+              </div>
 
-            <div className='form-group my-3'>
-                <label htmlFor='name'>Max Count: </label>
-                <input type='number' name='max_count' onChange={(e)=> setValues({...values, max_count: e.target.value})} />
-            </div>
+              <Form onSubmit={handleSubmit}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Event Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Enter event name"
+                    value={values.e_name}
+                    onChange={(e) =>
+                      setValues({ ...values, e_name: e.target.value })
+                    }
+                    required
+                  />
+                </Form.Group>
 
-            {/* <div className='form-group my-3'>
-                <label htmlFor='name'>Gender: </label>
-                <input type='text' name='gender' onChange={(e)=> setValues({...values, gender: e.target.value})} />
-            </div> */}
+                <Form.Group className="mb-3">
+                  <Form.Label>Location</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Enter location"
+                    value={values.location}
+                    onChange={(e) =>
+                      setValues({ ...values, location: e.target.value })
+                    }
+                    required
+                  />
+                </Form.Group>
 
-            <div className='form-group my-3'>
-                <button type='submit' className='btn btn-success'>Save</button>
-            </div>
-        </form>
-      </div>
-    </div>
-  )
+                <Form.Group className="mb-3">
+                  <Form.Label>Max Count</Form.Label>
+                  <Form.Control
+                    type="number"
+                    placeholder="Enter max participant count"
+                    value={values.max_count}
+                    onChange={(e) =>
+                      setValues({ ...values, max_count: e.target.value })
+                    }
+                    required
+                  />
+                </Form.Group>
+
+                <div className="d-grid">
+                  <Button variant="primary" type="submit">
+                    Save Event
+                  </Button>
+                </div>
+              </Form>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
+  );
 }
 
-export default Create
+export default Create;
