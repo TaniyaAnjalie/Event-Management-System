@@ -103,8 +103,8 @@ This project helped improve skills in:
 
 ## ✍️ Author
 
-**Taniya Anjalie Jeewandara**
-Final-year BSc (Hons) Computer Science (Top-up) student
+**Taniya Anjalie Jeewandara**  
+*🎓 BSc (Hons) Computer Science (Top-up) student*  
 💡 Passionate about software development, full-stack apps, and real-world problem solving.
 
 ---
